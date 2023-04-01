@@ -27,6 +27,6 @@ func GetAllBooks() []Book {
 
 func GetAllBookById(id int) (*Book, *gorm.DB) {
 	var book Book
-	db.Model(&book).Where("id=?", id).Find(&book)
+	db.Where("id=?", id).Find(&book)
 	return &book, db
 }

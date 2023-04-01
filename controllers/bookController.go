@@ -106,39 +106,37 @@ func UpdateBook(res http.ResponseWriter, req *http.Request) {
 
 	name := req.FormValue("name")
 	author := req.FormValue("author")
-	// publication := req.FormValue("publication")
+	publication := req.FormValue("publication")
 
-	DBConnection.Model(&book).Updates(map[string]interface{}{"Name": name, "author": author})
+	DBConnection.Model(&book).Where("id=?", id).Updates(
+		map[string]interface{}{
+			"name":        name,
+			"author":      author,
+			"publication": publication,
+		})
 
 	fmt.Println("Book updated successfully")
 }
 
-// func DeleteTask(res http.ResponseWriter, req *http.Request) {
-// 	res.Header().Set("Access-Control-Allow-Methods", "DELETE")
-// 	res.Header().Set("Access-Control-Allow-Orign", "*")
-// 	res.Header().Set("Access-Control-Allow-Type", "application/json")
+func DeleteBook(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Access-Control-Allow-Methods", "DELETE")
+	res.Header().Set("Access-Control-Allow-Orign", "*")
+	res.Header().Set("Access-Control-Allow-Type", "application/json")
 
-// 	vars := mux.Vars(req)
-// 	book_id := vars["book_id"]
+	vars := mux.Vars(req)
+	book_id := vars["book_id"]
 
-// 	id, _ := primitive.ObjectIDFromHex(book_id)
-// 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+	id, _ := strconv.Atoi(book_id)
 
-// 	foundBook, err := collection.FindOne(ctx, bson.M{"_id": id}).DecodeBytes()
+	foundBook := DBConnection.Model(&BookModel).Where("id=?", id).Preload("Book").First(&BookModel)
+	if foundBook == nil {
+		fmt.Print("No matching Book found")
+		return
+	}
 
-// 	defer cancel()
-// 	if err != nil {
-// 		log.Fatal("Unable to fetch the data for task")
-// 	}
-// 	if foundBook == nil {
-// 		log.Fatal("Task not found")
-// 	}
-
-// 	taskToDelete, err := collection.DeleteOne(ctx, bson.M{"_id": id})
-
-// 	if err != nil {
-// 		panic("Task was not updated")
-// 	}
-
-// 	fmt.Println("Task deleted", taskToDelete)
-// }
+	book := models.Book{
+		Id: uint(id),
+	}
+	DBConnection.Model(&book).Where("id=?", id).Delete(&book)
+	fmt.Println("Book deleted")
+}
